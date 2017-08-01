@@ -1,0 +1,6 @@
+.env
+*.pyc
+
+# MS Office:
+# https://github.com/github/gitignore/blob/master/Global/MicrosoftOffice.gitignore
+~$*.xlsx*
