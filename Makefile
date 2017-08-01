@@ -2,6 +2,10 @@
 # 06/01/2017
 # Experimental integration with XLwings on Mac 2016
 
+
+quickstart:
+	# xlwings quickstart myproject
+
 install:
 	pip install -r requirements.txt
 	# Run first time only on Mac
