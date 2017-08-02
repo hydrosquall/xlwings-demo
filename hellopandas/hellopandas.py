@@ -25,6 +25,9 @@ class AssemblyClient():
 
         Public Documentation:
         https://docs.public.enigma.com
+
+        Todo: add cache:
+        https://pypi.python.org/pypi/requests-cache
     """
 
     def __init__(self, api_key=None):
