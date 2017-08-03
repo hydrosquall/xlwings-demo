@@ -18,6 +18,13 @@ import pandas as pd
 import requests
 import xlwings as xw
 from dotenv import load_dotenv, find_dotenv
+from cachecontrol import CacheControl
+
+# Todo: Investigate alternate lib if necessary
+# try https://statcompute.wordpress.com/tag/pysqldf/
+from pandasql import sqldf
+
+EXCEL_ROW_LIMIT = 200000
 
 
 class AssemblyClient():
@@ -30,7 +37,7 @@ class AssemblyClient():
         https://pypi.python.org/pypi/requests-cache
     """
 
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, use_cache=True):
 
         if not api_key:
             api_key = os.environ.get("ENIGMA_API_KEY")
@@ -42,6 +49,10 @@ class AssemblyClient():
 
         session = requests.Session()
         session.headers.update(headers)
+
+        if use_cache:
+            session = CacheControl(session)
+
         self._session = session
         self._base_url = "https://public.enigma.com/api"
 
@@ -62,41 +73,58 @@ class AssemblyClient():
         return response
 
 
+def pysqldf(query, context):
+    """Recommended design pattern by docs authors"""
+    return sqldf(query, context)
+
+
 def hello_xlwings():
     """Default function produced by excelwings quickstart
 
         xlwings functions on Mac are not allowed to take any arguments.
     """
+
+    # Setup
     load_dotenv(find_dotenv())  # Load API keys
-    assembly_client = AssemblyClient()
+    assembly_client = AssemblyClient(use_cache=True)
     wb = xw.Book.caller()
-    config_sheet = xw.sheets[1]
+    data_sheet = wb.sheets[0]
+    config_sheet = wb.sheets[1]
+    preview_sheet = wb.sheets[2]
 
     # Load config variables
-    dataset = config_sheet.range("B1").value
-    if dataset:
-        dataset_metadata = assembly_client.get_dataset_metadata(dataset)
-        snapshot = dataset_metadata['current_snapshot']['id']
+    dataset_id = config_sheet.range("B1").value
+    if dataset_id:
+        dataset_metadata = assembly_client.get_dataset_metadata(dataset_id)
+        snapshot_id = dataset_metadata['current_snapshot']['id']
         config_sheet.range("C1").value = dataset_metadata['display_name']
     else:
-        snapshot = config_sheet.range("B2").value
+        snapshot_id = config_sheet.range("B2").value
 
-    # If debugging use this hardcoded snapshot
-    # snapshot = "f86381d5-2e8d-4db3-9bcd-77e7f8d87ff0"
+    # If no query is provided, by default display some data
+    query = config_sheet.range("B3").value
+    if not query:
+        query = """SELECT * FROM dataset LIMIT {};""".format(EXCEL_ROW_LIMIT)
 
     # Get the CSV saved locally
-    raw_data = assembly_client.get_snapshot_export(snapshot)
-    df = pd.read_csv(io.StringIO(raw_data.decode('utf-8')))
+    raw_data = assembly_client.get_snapshot_export(snapshot_id)
+    dataset = pd.read_csv(io.StringIO(raw_data.decode('utf-8')))
+
+    # Show available columns in a preview pane
+    preview_sheet.range('A1').value = dataset.head(10)
+    filtered = pysqldf(query, locals())
+    data_sheet.clear_contents()
 
     # Write results to the excel sheet
-    # Optional: you could also output the top 900,000 items to provide partial
-    # info...
-    df.index.name = "PandasIndex"
-    height = df.shape[0]
-    if height > 900000:  # More conservative than the hard limit, for safety
-        output = "{0} has {1} rows: don't open this data in Excel."\
-            .format(dataset, height)
+    height = filtered.shape[0]
+    if height > EXCEL_ROW_LIMIT:
+        outputCell = "A2"
+        data_sheet.range("A1").value = \
+            """{0} has {2} rows: we just display the top {1}"
+                Consider providing a custom SQL command"""\
+                .format(dataset_id, EXCEL_ROW_LIMIT, dataset.shape[0])
+        filtered = filtered.head(EXCEL_ROW_LIMIT)
     else:
-        output = df
+        outputCell = "A1"
 
-    wb.sheets[0].range("A1").value = output
+    data_sheet.range(outputCell).value = filtered

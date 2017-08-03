@@ -45,11 +45,12 @@ Add the following to an `.env` file in the repository folder.
 
 ## Roadmap
 
-1. Write hello-world example
-2. Use Pandas to pipe a dataframe into Excel
-3. Use Pandas to pipe an Enigma table into Excel
-4. Extend pandas-datareader to support the new Enigma API
-5. Create examples of doing rollup aggregation in Python / link to pandas demos which can pipe the results into Excel readily.
+- [x] Write hello-world example
+- [x] Use Pandas to pipe a dataframe into Excel
+- [x]  Use Pandas to pipe an Enigma table into Excel
+- [x] Create examples of doing rollup aggregation in Python / link to pandas demos which can pipe the results into Excel readily.
+    - Add example SQL queries, possibly create a blog post, using Enigma data
+- [ ] Extend pandas-datareader to support the new Enigma API
 
 
 ## Limitations
