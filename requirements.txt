@@ -6,7 +6,7 @@ chardet==3.0.4
 click==6.7
 decorator==4.1.2
 idna==2.5
-ipython==6.1.0
+ipython
 ipython-genutils==0.2.0
 jedi==0.10.2
 msgpack-python==0.4.8
