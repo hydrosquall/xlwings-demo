@@ -17,7 +17,7 @@ pandasql==0.7.3
 pexpect==4.2.1
 pickleshare==0.7.4
 prompt-toolkit==1.0.15
-psutil==5.2.2
+psutil==5.6.6
 ptyprocess==0.5.2
 Pygments==2.2.0
 python-dateutil==2.6.1
