@@ -30,6 +30,6 @@ simplegeneric==0.8.1
 six==1.10.0
 SQLAlchemy==1.1.12
 traitlets==4.3.2
-urllib3==1.24.2
+urllib3==1.26.5
 wcwidth==0.1.7
 xlwings==0.11.4
